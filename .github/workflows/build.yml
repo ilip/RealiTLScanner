@@ -1,0 +1,38 @@
+name: Build Go Project for macOS arm64
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        go-version: [ '1.21.x' ]
+        platform: [darwin/arm64 ]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Build
+      run: |
+        GOOS=$(echo ${{ matrix.platform }} | cut -d'/' -f1)
+        GOARCH=$(echo ${{ matrix.platform }} | cut -d'/' -f2)
+        OUTPUT="bin/RealiTLScanner" 
+        
+        go build -v -o $OUTPUT ./...
+        echo "Built binary: $OUTPUT"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-binaries
+        path: bin/
